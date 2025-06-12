@@ -1,8 +1,7 @@
-const fetch = require("node-fetch"); // Important for older Node.js
-
 const authUrl = "http://20.244.56.144/evaluation-service/auth";
-const dataUrl = "http://20.244.56.144/evaluation-service/stocks";
+const stocksUrl = "http://20.244.56.144/evaluation-service/stocks";
 
+//user data
 const userData = {
   email: "2203a52147@sru.edu.in",
   name: "devireddy poojitha reddy",
@@ -12,44 +11,74 @@ const userData = {
   clientSecret: "VbXGaeytmyWxnChY"
 };
 
-async function getAccessToken() {
+// post
+async function postAndLogToken() {
   try {
     const res = await fetch(authUrl, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json"
+      },
       body: JSON.stringify(userData)
     });
 
-    if (!res.ok) throw new Error(`Auth failed: ${res.status}`);
+    if (!res.ok) {
+      throw new Error(`Auth failed with status: ${res.status}`);
+    }
 
-    const tokenData = await res.json();
-    const token = tokenData.access_token.replace(/^Bearer\s+/i, "");
-    return token;
+    const data = await res.json();
+    console.log("Response from auth endpoint:");
+    console.log(data.access_token);
+
   } catch (err) {
-    console.error("Error getting token:", err.message);
+    console.error("Error during POST:", err.message);
   }
 }
 
-async function fetchProtectedData() {
-  const token = await getAccessToken();
+//access token retrieval
+async function getAccessToken() {
+  const res = await fetch(authUrl, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(userData)
+  });
 
-  if (!token) return;
+  if (!res.ok) throw new Error("Failed to get token");
 
+  const data = await res.json();
+  const rawToken = data.access_token.replace(/^Bearer\s+/i, "");
+  return `Bearer ${rawToken}`;
+}
+
+
+// calling the stocks API with the token received from the auth endpoint
+async function callStocksAPI() {
   try {
-    const res = await fetch(dataUrl, {
+    const bearerToken = await getAccessToken();
+
+    const res = await fetch(stocksUrl, {
       method: "GET",
       headers: {
-        Authorization: `Bearer ${token}`
+        Authorization: bearerToken
       }
     });
 
-    if (!res.ok) throw new Error(`Data fetch failed: ${res.status}`);
+    if (!res.ok) throw new Error(`Failed to fetch stocks: ${res.status}`);
 
-    const data = await res.json();
-    console.log("Protected API Data:", data);
+    const stocksData = await res.json();
+
+    console.log("Stocks API Data:");
+    console.log(stocksData);
   } catch (err) {
-    console.error("Error fetching protected data:", err.message);
+    console.error("Error:", err.message);
   }
 }
 
-fetchProtectedData();
+
+
+
+
+// posting the user information to the auth endpoint
+postAndLogToken();
+// calling the stocks API with the token received from the auth endpoint
+callStocksAPI();
