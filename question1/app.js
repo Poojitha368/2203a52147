@@ -1,9 +1,8 @@
-const fetch = require("node-fetch"); // Uncomment if on Node.js <18
+const fetch = require("node-fetch"); // Important for older Node.js
 
 const authUrl = "http://20.244.56.144/evaluation-service/auth";
-const dataUrl = "http://20.244.56.144/evaluation-service/stocks"; // Example protected endpoint
+const dataUrl = "http://20.244.56.144/evaluation-service/stocks";
 
-// Your POST data
 const userData = {
   email: "2203a52147@sru.edu.in",
   name: "devireddy poojitha reddy",
@@ -13,7 +12,6 @@ const userData = {
   clientSecret: "VbXGaeytmyWxnChY"
 };
 
-// Step 1: Get access token
 async function getAccessToken() {
   try {
     const res = await fetch(authUrl, {
@@ -25,17 +23,13 @@ async function getAccessToken() {
     if (!res.ok) throw new Error(`Auth failed: ${res.status}`);
 
     const tokenData = await res.json();
-    
-    // Extract token (remove redundant "Bearer " if it’s already present)
-    let token = tokenData.access_token.replace(/^Bearer\s+/i, "");
-    
+    const token = tokenData.access_token.replace(/^Bearer\s+/i, "");
     return token;
   } catch (err) {
     console.error("Error getting token:", err.message);
   }
 }
 
-// Step 2: Use token to fetch protected data
 async function fetchProtectedData() {
   const token = await getAccessToken();
 
