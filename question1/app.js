@@ -76,7 +76,7 @@ async function callStocksAPI() {
   }
 }
 
-
+// fetching the stock details for each ticker
 async function fetchStockDetails() {
   try {
     // Step 1: Get token
